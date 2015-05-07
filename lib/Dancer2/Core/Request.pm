@@ -156,7 +156,7 @@ sub host {
     my ($self) = @_;
 
     if ( $self->is_behind_proxy ) {
-        my @hosts = split /\s*,\s*/, $self->env->{HTTP_X_FORWARDED_HOST}, 2;
+        my @hosts = split /\s*,\s*/, $self->env->{'HTTP_X_FORWARDED_HOST'}, 2;
         return $hosts[0];
     } else {
         return $self->env->{'HTTP_HOST'};
@@ -178,17 +178,11 @@ sub forwarded_protocol    {
 
 sub scheme {
     my ($self) = @_;
-    my $scheme;
-    if ( $self->is_behind_proxy ) {
-        # Note the 'HTTP_' prefix the PSGI spec adds to headers.
-        $scheme =
-             $self->env->{'HTTP_X_FORWARDED_PROTOCOL'}
-          || $self->env->{'HTTP_X_FORWARDED_PROTO'}
-          || $self->env->{'HTTP_FORWARDED_PROTO'}
-          || '';
-    }
+    my $scheme = $self->is_behind_proxy
+               ? $self->forwarded_protocol
+               : '';
 
-    return $scheme || $self->env->{'psgi.url_scheme'} || '';
+    return $scheme || $self->env->{'psgi.url_scheme'};
 }
 
 sub serializer { $_[0]->{'serializer'} }
